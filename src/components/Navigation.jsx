@@ -1,20 +1,120 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Car, Users, LogIn, Info } from "lucide-react";
+import {
+  Menu,
+  X,
+  Car,
+  Users,
+  LogIn,
+  Info,
+  CircleUser,
+  LogOut,
+} from "lucide-react";
+import { useUser, useUserActions } from "../context/UserContext";
+
+const items = [
+  { path: "/find-rides", label: "Find Rides", icon: Users },
+  // { path: "/post-ride", label: "Post Ride", icon: Car },
+  { path: "/login", label: "Login", icon: LogIn },
+];
+
+const toggleLogin = (isAuthenticated, tempNavItems) => {
+  if (isAuthenticated) {
+    const userNavItem = {
+      path: "/profile",
+      label: "Profile",
+      icon: CircleUser,
+    };
+
+    const logoutNavItem = {
+      path: "/",
+      label: "Logout",
+      icon: LogOut,
+    };
+
+    if (!tempNavItems.find((item) => item.path === "/profile")) {
+      tempNavItems.push(userNavItem);
+    }
+
+    if (!tempNavItems.find((item) => item.path === "/")) {
+      tempNavItems.push(logoutNavItem);
+    }
+    // remove login item
+    const loginIndex = tempNavItems.findIndex((item) => item.path === "/login");
+    if (loginIndex !== -1) {
+      tempNavItems.splice(loginIndex, 1);
+    }
+  } else {
+    // remove profile item
+    const profileIndex = tempNavItems.findIndex(
+      (item) => item.path === "/profile"
+    );
+    if (profileIndex !== -1) {
+      tempNavItems.splice(profileIndex, 1);
+    }
+
+    // remove logout item
+    const logoutIndex = tempNavItems.findIndex((item) => item.path === "/");
+    if (logoutIndex !== -1) {
+      tempNavItems.splice(logoutIndex, 1);
+    }
+
+    const loginNavItem = { path: "/login", label: "Login", icon: LogIn };
+    if (!tempNavItems.find((item) => item.path === "/login")) {
+      tempNavItems.push(loginNavItem);
+    }
+  }
+  return tempNavItems;
+};
+
+const toggleDriver = (isAuthenticated, tempNavItems, isDriver = false) => {
+  if (isAuthenticated && isDriver) {
+    console.log("som");
+    const postRideNavItem = {
+      path: "/post-ride",
+      label: "Post Ride",
+      icon: Car,
+    };
+
+    if (!tempNavItems.find((item) => item.path === "/post-ride")) {
+      tempNavItems = [postRideNavItem, ...tempNavItems];
+    }
+  } else {
+    console.log("tempNavItems");
+    const postRideIndex = tempNavItems.findIndex(
+      (item) => item.path === "/post-ride"
+    );
+    if (postRideIndex !== -1) {
+      tempNavItems.splice(postRideIndex, 1);
+    }
+  }
+  return tempNavItems;
+};
 
 const Navigation = () => {
+  const { isLoading, error, isAuthenticated, user } = useUser();
+  const { logout } = useUserActions();
+  const [navItems, setNavItems] = useState(items);
+
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  // const isDriver = user?.isDriver || false;
+  useEffect(() => {
+    let tempNavItems = [...navItems];
+    tempNavItems = toggleLogin(isAuthenticated, tempNavItems);
+    console.log(user?.isDriver);
+    tempNavItems = toggleDriver(isAuthenticated, tempNavItems, user?.isDriver);
+    setNavItems(tempNavItems);
+  }, [isAuthenticated, user]);
 
-  const navItems = [
-    { path: "/login", label: "Login", icon: LogIn },
-    { path: "/post-ride", label: "Post Ride", icon: Car },
-    { path: "/find-rides", label: "Find Rides", icon: Users },
-    { path: "/about", label: "About", icon: Info },
-  ];
+  // console.log("Nav Items:", navItems);
+  const isActive = (path) =>
+    location.pathname !== "/" && location.pathname === path;
 
-  const isActive = (path) => location.pathname === path;
-
+  const logoutHandler = () => {
+    // Call logout action here
+    logout();
+  };
   return (
     <>
       {/* Desktop Navigation */}
@@ -31,6 +131,7 @@ const Navigation = () => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={item.label === "Logout" ? logoutHandler : null}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                     isActive(item.path)
                       ? "bg-primary/20 text-primary border border-primary/30"
@@ -81,7 +182,14 @@ const Navigation = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      onClick={() => setIsOpen(false)}
+                      onClick={
+                        item.label === "Logout"
+                          ? () => {
+                              logoutHandler();
+                              setIsOpen(false);
+                            }
+                          : () => setIsOpen(false)
+                      }
                       className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
                         isActive(item.path)
                           ? "bg-primary/20 text-primary border border-primary/30"

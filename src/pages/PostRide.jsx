@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MapPin, Calendar, Clock, User, Phone, Car } from "lucide-react";
+import { rideRequests } from "../utils/rideRequests";
 
 const PostRide = () => {
   const [formData, setFormData] = useState({
@@ -9,14 +10,43 @@ const PostRide = () => {
     time: "",
     eta: "",
     contact: "",
-    seats: "",
+    availableSeats: "",
     price: "",
     description: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Ride posted:", formData);
+    // Handle form submission logic here
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value === "" && key !== "description") {
+        alert("Please fill all required fields");
+        return; // stops only this iteration, not the whole loop
+      }
+    });
+
+    try {
+      const response = await rideRequests("/rides", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+    } catch (error) {
+      console.error("Error posting ride:", error);
+      alert("Failed to post ride. Please try again.");
+    }
+
+    alert("Ride posted successfully!");
+    setFormData({
+      startLocation: "",
+      destination: "",
+      date: "",
+      time: "",
+      eta: "",
+      contact: "",
+      availableSeats: "",
+      price: "",
+      description: "",
+    });
   };
 
   const handleChange = (e) => {
@@ -143,8 +173,8 @@ const PostRide = () => {
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-success w-5 h-5" />
                   <input
                     type="number"
-                    name="seats"
-                    value={formData.seats}
+                    name="availableSeats"
+                    value={formData.availableSeats}
                     onChange={handleChange}
                     className="input-glass w-full pl-12"
                     placeholder="3"

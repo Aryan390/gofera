@@ -17,14 +17,14 @@ router.use(authController.protect);
 // User profile routes
 router.get("/me", authController.getMe);
 router.patch("/me", authController.updateMe);
-router.patch("/updateMyPassword", authController.updatePassword);
-router.delete("/me", userController.deleteUser);
+// router.patch("/updateMyPassword", authController.updatePassword);
+router.delete("/me/:id", userController.deleteUser);
 
 // Driver routes
 router.patch(
-	"/become-driver",
-	authController.requireDriver,
-	userController.becomeDriver
+  "/become-driver",
+  // authController.requireDriver,
+  userController.becomeDriver
 );
 
 // User management routes
@@ -34,10 +34,10 @@ router.patch("/:id", userController.updateUser);
 router.delete("/:id", userController.deleteUser);
 
 // Rating routes
-router.post("/:userId/rate", userController.rateUser);
+// router.post("/:userId/rate", userController.rateUser);
 
 // Password reset routes
-router.post("/forgotPassword", authController.forgotPassword);
-router.patch("/resetPassword/:token", authController.resetPassword);
+// router.post("/forgotPassword", authController.forgotPassword);
+// router.patch("/resetPassword/:token", authController.resetPassword);
 
 module.exports = router;

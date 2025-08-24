@@ -1,20 +1,62 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import { LogIn, Mail, Lock, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
+import { useUser, useUserActions } from "../context/UserContext";
+import { LogIn, Mail, Lock, UserPlus, Phone } from "lucide-react";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useUser();
+  const { login, register, clearError } = useUserActions();
+
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     name: "",
+    phone: "",
   });
 
-  const handleSubmit = (e) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // // Clear error when switching modes
+  // useEffect(() => {
+  //   clearError();
+  // }, [isLogin, clearError]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Handle login/signup logic here
-    console.log("Form submitted:", formData);
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+
+    let result;
+    if (isLogin) {
+      result = await login({
+        email: formData.email,
+        password: formData.password,
+      });
+    } else {
+      result = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        phone: formData.phone,
+      });
+    }
+
+    if (result.success) {
+      console.log("Authentication successful");
+      // Navigation will happen automatically via useEffect
+    }
   };
 
   const handleChange = (e) => {
@@ -22,6 +64,18 @@ const Login = () => {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleToggleMode = () => {
+    setIsLogin(!isLogin);
+    clearError();
+    setFormData({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      phone: "",
+    });
   };
 
   return (
@@ -40,6 +94,12 @@ const Login = () => {
               : "Create your account to get started"}
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
@@ -76,6 +136,26 @@ const Login = () => {
               />
             </div>
           </div>
+
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-glass-foreground mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="input-glass w-full pl-12"
+                  placeholder="Enter your phone number"
+                  required={!isLogin}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-glass-foreground mb-2">
@@ -128,9 +208,16 @@ const Login = () => {
           <p className="text-glass-foreground">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
           </p>
-          <button
+          {/* <button
             onClick={() => setIsLogin(!isLogin)}
             className="btn-glass mt-2 text-primary hover:text-primary-glow"
+          >
+            {isLogin ? "Create Account" : "Sign In"}
+          </button> */}
+          <button
+            onClick={handleToggleMode}
+            className="text-blue-500 hover:text-blue-600 font-medium text-sm mt-1"
+            disabled={isLoading}
           >
             {isLogin ? "Create Account" : "Sign In"}
           </button>

@@ -5,283 +5,260 @@ const AppError = require("../utils/appError");
 
 // Get all users (admin only)
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-	const users = await User.find().select("-password");
+  const users = await User.find().select("-password");
 
-	res.status(200).json({
-		status: "success",
-		results: users.length,
-		data: {
-			users,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    results: users.length,
+    data: {
+      users,
+    },
+  });
 });
 
 // Get user by ID
 exports.getUser = catchAsync(async (req, res, next) => {
-	const user = await User.findById(req.params.id).select("-password");
+  const user = await User.findById(req.params.id).select("-password");
 
-	if (!user) {
-		return next(new AppError("No user found with that ID", 404));
-	}
+  if (!user) {
+    return next(new AppError("No user found with that ID", 404));
+  }
 
-	res.status(200).json({
-		status: "success",
-		data: {
-			user,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
 });
 
 // Update user profile (only the user themselves)
 exports.updateUser = catchAsync(async (req, res, next) => {
-	// Filter out unwanted fields
-	const filteredBody = { ...req.body };
-	const allowedFields = ["name", "email", "phone", "vehicleInfo"];
-	Object.keys(filteredBody).forEach((key) => {
-		if (!allowedFields.includes(key)) delete filteredBody[key];
-	});
+  // Filter out unwanted fields
+  const filteredBody = { ...req.body };
+  const allowedFields = ["name", "email", "phone"];
+  Object.keys(filteredBody).forEach((key) => {
+    if (!allowedFields.includes(key)) delete filteredBody[key];
+  });
 
-	const updatedUser = await User.findByIdAndUpdate(
-		req.user.id,
-		filteredBody,
-		{
-			new: true,
-			runValidators: true,
-		}
-	).select("-password");
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true,
+  }).select("-password");
 
-	res.status(200).json({
-		status: "success",
-		data: {
-			user: updatedUser,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    data: {
+      user: updatedUser,
+    },
+  });
 });
 
 // Delete user account
 exports.deleteUser = catchAsync(async (req, res, next) => {
-	const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id);
+  console.log(req.params.id);
+  if (!user) {
+    return next(new AppError("No user found with that ID", 404));
+  }
 
-	if (!user) {
-		return next(new AppError("No user found with that ID", 404));
-	}
+  // Check if user is deleting their own account
+  if (req.user.id !== req.params.id) {
+    return next(new AppError("You can only delete your own account", 403));
+  }
 
-	// Check if user is deleting their own account
-	if (req.user.id !== req.params.id) {
-		return next(new AppError("You can only delete your own account", 403));
-	}
+  // Check if user has active rides
+  const activeRides = await Ride.find({
+    $or: [
+      { driver: req.user.id, status: "active" },
+      { "passengers.user": req.user.id, status: "active" },
+    ],
+  });
 
-	// Check if user has active rides
-	const activeRides = await Ride.find({
-		$or: [
-			{ driver: req.user.id, status: "active" },
-			{ "passengers.user": req.user.id, status: "active" },
-		],
-	});
+  if (activeRides.length > 0) {
+    return next(new AppError("Cannot delete account with active rides", 400));
+  }
 
-	if (activeRides.length > 0) {
-		return next(
-			new AppError("Cannot delete account with active rides", 400)
-		);
-	}
+  await User.findByIdAndDelete(req.params.id);
 
-	await User.findByIdAndDelete(req.params.id);
-
-	res.status(204).json({
-		status: "success",
-		data: null,
-	});
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
 });
 
 // Get user statistics
 exports.getUserStats = catchAsync(async (req, res, next) => {
-	const userId = req.params.id || req.user.id;
+  const userId = req.params.id || req.user.id;
 
-	// Get user's ride statistics
-	const driverStats = await Ride.aggregate([
-		{
-			$match: { driver: userId },
-		},
-		{
-			$group: {
-				_id: "$status",
-				count: { $sum: 1 },
-				totalRevenue: { $sum: "$totalRevenue" },
-			},
-		},
-	]);
+  // Get user's ride statistics
+  const driverStats = await Ride.aggregate([
+    {
+      $match: { driver: userId },
+    },
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 },
+        totalRevenue: { $sum: "$totalRevenue" },
+      },
+    },
+  ]);
 
-	const passengerStats = await Ride.aggregate([
-		{
-			$match: { "passengers.user": userId },
-		},
-		{
-			$group: {
-				_id: "$status",
-				count: { $sum: 1 },
-			},
-		},
-	]);
+  // const passengerStats = await Ride.aggregate([
+  //   {
+  //     $match: { "passengers.user": userId },
+  //   },
+  //   {
+  //     $group: {
+  //       _id: "$status",
+  //       count: { $sum: 1 },
+  //     },
+  //   },
+  // ]);
 
-	const totalDriverRides = await Ride.countDocuments({ driver: userId });
-	const totalPassengerRides = await Ride.countDocuments({
-		"passengers.user": userId,
-	});
+  const totalDriverRides = await Ride.countDocuments({ driver: userId });
+  // const totalPassengerRides = await Ride.countDocuments({
+  //   "passengers.user": userId,
+  // });
 
-	res.status(200).json({
-		status: "success",
-		data: {
-			driverStats,
-			passengerStats,
-			totalDriverRides,
-			totalPassengerRides,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    data: {
+      driverStats,
+      // passengerStats,
+      totalDriverRides,
+      // totalPassengerRides,
+    },
+  });
 });
 
 // Update user to driver status
 exports.becomeDriver = catchAsync(async (req, res, next) => {
-	const { vehicleInfo } = req.body;
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user.id,
+    {
+      isDriver: true,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  ).select("-password");
 
-	if (!vehicleInfo) {
-		return next(
-			new AppError(
-				"Vehicle information is required to become a driver",
-				400
-			)
-		);
-	}
-
-	const updatedUser = await User.findByIdAndUpdate(
-		req.user.id,
-		{
-			isDriver: true,
-			vehicleInfo,
-		},
-		{
-			new: true,
-			runValidators: true,
-		}
-	).select("-password");
-
-	res.status(200).json({
-		status: "success",
-		message: "Successfully became a driver!",
-		data: {
-			user: updatedUser,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    message: "Successfully became a driver!",
+    data: {
+      user: updatedUser,
+    },
+  });
 });
 
 // Get drivers list (public access)
 exports.getDrivers = catchAsync(async (req, res, next) => {
-	const drivers = await User.find({
-		isDriver: true,
-		active: true,
-	}).select("name rating totalRides vehicleInfo");
+  const drivers = await User.find({
+    isDriver: true,
+    active: true,
+  });
 
-	res.status(200).json({
-		status: "success",
-		results: drivers.length,
-		data: {
-			drivers,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    results: drivers.length,
+    data: {
+      drivers,
+    },
+  });
 });
 
 // Search users
 exports.searchUsers = catchAsync(async (req, res, next) => {
-	const { name, email, isDriver } = req.query;
+  const { name, email, isDriver } = req.query;
 
-	const filter = { active: true };
+  const filter = { active: true };
 
-	if (name) {
-		filter.name = { $regex: name, $options: "i" };
-	}
+  if (name) {
+    filter.name = { $regex: name, $options: "i" };
+  }
 
-	if (email) {
-		filter.email = { $regex: email, $options: "i" };
-	}
+  if (email) {
+    filter.email = { $regex: email, $options: "i" };
+  }
 
-	if (isDriver !== undefined) {
-		filter.isDriver = isDriver === "true";
-	}
+  if (isDriver !== undefined) {
+    filter.isDriver = isDriver === "true";
+  }
 
-	const users = await User.find(filter)
-		.select("name email isDriver rating totalRides")
-		.limit(20);
+  const users = await User.find(filter).select("name email isDriver").limit(20);
 
-	res.status(200).json({
-		status: "success",
-		results: users.length,
-		data: {
-			users,
-		},
-	});
+  res.status(200).json({
+    status: "success",
+    results: users.length,
+    data: {
+      users,
+    },
+  });
 });
 
 // Rate a user (after ride completion)
-exports.rateUser = catchAsync(async (req, res, next) => {
-	const { rating, comment } = req.body;
-	const { userId } = req.params;
+// exports.rateUser = catchAsync(async (req, res, next) => {
+//   const { rating, comment } = req.body;
+//   const { userId } = req.params;
 
-	if (!rating || rating < 1 || rating > 5) {
-		return next(
-			new AppError("Please provide a valid rating between 1 and 5", 400)
-		);
-	}
+//   if (!rating || rating < 1 || rating > 5) {
+//     return next(
+//       new AppError("Please provide a valid rating between 1 and 5", 400)
+//     );
+//   }
 
-	const userToRate = await User.findById(userId);
-	if (!userToRate) {
-		return next(new AppError("User not found", 404));
-	}
+//   const userToRate = await User.findById(userId);
+//   if (!userToRate) {
+//     return next(new AppError("User not found", 404));
+//   }
 
-	// Check if users have completed a ride together
-	const completedRide = await Ride.findOne({
-		$or: [
-			{
-				driver: req.user.id,
-				"passengers.user": userId,
-				status: "completed",
-			},
-			{
-				driver: userId,
-				"passengers.user": req.user.id,
-				status: "completed",
-			},
-		],
-	});
+//   // Check if users have completed a ride together
+//   const completedRide = await Ride.findOne({
+//     $or: [
+//       {
+//         driver: req.user.id,
+//         "passengers.user": userId,
+//         status: "completed",
+//       },
+//       {
+//         driver: userId,
+//         "passengers.user": req.user.id,
+//         status: "completed",
+//       },
+//     ],
+//   });
 
-	if (!completedRide) {
-		return next(
-			new AppError(
-				"You can only rate users you have completed rides with",
-				400
-			)
-		);
-	}
+//   if (!completedRide) {
+//     return next(
+//       new AppError("You can only rate users you have completed rides with", 400)
+//     );
+//   }
 
-	// Update user's rating
-	const currentRating = userToRate.rating;
-	const totalRides = userToRate.totalRides;
+//   // Update user's rating
+//   const currentRating = userToRate.rating;
+//   const totalRides = userToRate.totalRides;
 
-	const newRating = (currentRating * totalRides + rating) / (totalRides + 1);
+//   const newRating = (currentRating * totalRides + rating) / (totalRides + 1);
 
-	userToRate.rating = newRating;
-	userToRate.totalRides = totalRides + 1;
+//   userToRate.rating = newRating;
+//   userToRate.totalRides = totalRides + 1;
 
-	await userToRate.save();
+//   await userToRate.save();
 
-	res.status(200).json({
-		status: "success",
-		message: "Rating submitted successfully",
-		data: {
-			user: {
-				id: userToRate._id,
-				name: userToRate.name,
-				rating: userToRate.rating,
-				totalRides: userToRate.totalRides,
-			},
-		},
-	});
-});
+//   res.status(200).json({
+//     status: "success",
+//     message: "Rating submitted successfully",
+//     data: {
+//       user: {
+//         id: userToRate._id,
+//         name: userToRate.name,
+//         rating: userToRate.rating,
+//         totalRides: userToRate.totalRides,
+//       },
+//     },
+//   });
+// });

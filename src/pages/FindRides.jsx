@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   MapPin,
@@ -9,10 +9,28 @@ import {
   DollarSign,
   Filter,
 } from "lucide-react";
+import { rideRequests } from "../utils/rideRequests";
 
 const FindRides = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [rides, setRides] = useState([]);
+
+  useEffect(() => {
+    handleRideLoad();
+  }, []);
+
+  const handleRideLoad = async () => {
+    try {
+      const respone = await rideRequests("/rides", {
+        method: "GET",
+      });
+      setRides(respone.data.rides);
+      console.log(respone.data.rides);
+    } catch (error) {
+      console.error("Error loading rides:", error);
+    }
+  };
 
   // Mock data for available rides
   const mockRides = [
@@ -70,8 +88,6 @@ const FindRides = () => {
     },
   ];
 
-  const [rides] = useState(mockRides);
-
   const filteredRides = rides.filter((ride) => {
     const matchesSearch =
       ride.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,11 +95,6 @@ const FindRides = () => {
     const matchesDate = !filterDate || ride.date === filterDate;
     return matchesSearch && matchesDate;
   });
-
-  const handleBookRide = (rideId) => {
-    console.log("Booking ride:", rideId);
-    // Handle booking logic here
-  };
 
   return (
     <div className="min-h-screen py-24 px-4">
@@ -147,7 +158,7 @@ const FindRides = () => {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-semibold text-primary mb-1">
-                    {ride.driver}
+                    {ride.driver.name}
                   </h3>
                   <div className="flex items-center space-x-2 text-glass-foreground">
                     <User size={16} />
@@ -199,14 +210,15 @@ const FindRides = () => {
                 <div className="flex items-center space-x-3">
                   <User className="text-success w-5 h-5" />
                   <span className="text-glass-foreground text-sm">
-                    {ride.seats} seat{ride.seats > 1 ? "s" : ""} available
+                    {ride.availableSeats} seat{ride.seats > 1 ? "s" : ""}{" "}
+                    available
                   </span>
                 </div>
 
                 <div className="flex items-center space-x-3">
                   <Phone className="text-primary w-5 h-5" />
                   <span className="text-glass-foreground text-sm">
-                    {ride.contact}
+                    {ride?.contact}
                   </span>
                 </div>
               </div>
@@ -219,13 +231,13 @@ const FindRides = () => {
                 </div>
               )}
 
-              <button
+              {/* <button
                 onClick={() => handleBookRide(ride.id)}
                 className="btn-primary-glass w-full flex items-center justify-center space-x-2"
               >
                 <DollarSign size={18} />
                 <span>Book This Ride</span>
-              </button>
+              </button> */}
             </div>
           ))}
         </div>

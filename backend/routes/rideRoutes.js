@@ -4,6 +4,8 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
+router.get("/my-rides", authController.protect, rideController.getMyRides);
+
 // Public routes - can be accessed by everyone
 router.get("/", rideController.getAllRides);
 router.get("/:id", rideController.getRide);
@@ -31,7 +33,6 @@ router.delete("/:id", authController.requireDriver, rideController.deleteRide);
 // router.delete("/:id/cancel-booking", rideController.cancelBooking);
 
 // User's rides
-// router.get("/my-rides", rideController.getMyRides);
 // router.get("/my-rides/stats", rideController.getRideStats);
 
 module.exports = router;

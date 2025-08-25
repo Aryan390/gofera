@@ -70,6 +70,7 @@ export const useUserActions = () => {
     updateProfile: (updateData) =>
       userActions.updateProfile(dispatch, updateData),
     // refreshToken: () => userActions.refreshToken(dispatch),
+    deleteProfile: () => userActions.deleteProfile(dispatch),
     clearError: () => userActions.clearError(dispatch),
     getCurrentUser: () => userActions.getCurrentUser(dispatch),
   };

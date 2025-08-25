@@ -156,19 +156,19 @@ exports.getMyRides = catchAsync(async (req, res, next) => {
         req.user.id
       );
       rides = await Ride.find({ driver: req.user.id })
-        .populate("passengers.user", "name email phone")
+        // .populate("passengers.user", "name email phone")
         .sort({ date: -1 });
       console.log("🔍 getMyRides - Driver rides found:", rides.length);
-    } else if (role === "passenger") {
-      // Get rides where user is a passenger
-      console.log(
-        "🔍 getMyRides - Querying passenger rides for user:",
-        req.user.id
-      );
-      rides = await Ride.find({ "passengers.user": req.user.id })
-        .populate("driver", "name email phone rating vehicleInfo")
-        .sort({ date: -1 });
-      console.log("🔍 getMyRides - Passenger rides found:", rides.length);
+      // } else if (role === "passenger") {
+      //   // Get rides where user is a passenger
+      //   console.log(
+      //     "🔍 getMyRides - Querying passenger rides for user:",
+      //     req.user.id
+      //   );
+      //   rides = await Ride.find({ "passengers.user": req.user.id })
+      //     .populate("driver", "name email phone rating vehicleInfo")
+      //     .sort({ date: -1 });
+      //   console.log("🔍 getMyRides - Passenger rides found:", rides.length);
     } else {
       // Get all rides (as driver or passenger)
       console.log("🔍 getMyRides - Querying all rides for user:", req.user.id);

@@ -9,6 +9,7 @@ import {
   Info,
   CircleUser,
   LogOut,
+  SquareChartGantt,
 } from "lucide-react";
 import { useUser, useUserActions } from "../context/UserContext";
 
@@ -69,23 +70,36 @@ const toggleLogin = (isAuthenticated, tempNavItems) => {
 
 const toggleDriver = (isAuthenticated, tempNavItems, isDriver = false) => {
   if (isAuthenticated && isDriver) {
-    console.log("som");
     const postRideNavItem = {
       path: "/post-ride",
       label: "Post Ride",
       icon: Car,
     };
 
+    const editRideNavItem = {
+      path: "/manage-rides",
+      label: "Dashboard",
+      icon: SquareChartGantt,
+    };
+
     if (!tempNavItems.find((item) => item.path === "/post-ride")) {
       tempNavItems = [postRideNavItem, ...tempNavItems];
     }
+    if (!tempNavItems.find((item) => item.path === "/manage-rides")) {
+      tempNavItems = [editRideNavItem, ...tempNavItems];
+    }
   } else {
-    console.log("tempNavItems");
     const postRideIndex = tempNavItems.findIndex(
       (item) => item.path === "/post-ride"
     );
     if (postRideIndex !== -1) {
       tempNavItems.splice(postRideIndex, 1);
+    }
+    const editRideNavItem = tempNavItems.findIndex(
+      (item) => item.path === "/manage-rides"
+    );
+    if (editRideNavItem !== -1) {
+      tempNavItems.splice(editRideNavItem, 1);
     }
   }
   return tempNavItems;
@@ -132,7 +146,7 @@ const Navigation = () => {
                   key={item.path}
                   to={item.path}
                   onClick={item.label === "Logout" ? logoutHandler : null}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition-all duration-300 ${
                     isActive(item.path)
                       ? "bg-primary/20 text-primary border border-primary/30"
                       : "text-glass-foreground hover:bg-glass/60 hover:text-primary"

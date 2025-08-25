@@ -41,8 +41,14 @@ export class UserService {
 
   static async updateProfile(updateData) {
     return this.request("/me", {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(updateData),
+    });
+  }
+  static async deleteProfile(userData) {
+    return this.request("/me", {
+      method: "DELETE",
+      body: JSON.stringify(userData),
     });
   }
 

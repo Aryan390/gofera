@@ -1,3 +1,4 @@
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router";
 import {
   Car,
@@ -8,7 +9,10 @@ import {
   Star,
   AlertTriangle,
 } from "lucide-react";
-import HyperSpeedFinal from "../components/Hyperspeed/HyperSpeedFinal";
+// import HyperSpeedFinal from "../components/Hyperspeed/HyperSpeedFinal";
+const HyperSpeedFinal = lazy(() =>
+  import("../components/Hyperspeed/HyperSpeedFinal")
+);
 
 const features = [
   {
@@ -49,9 +53,72 @@ const stats = [
 ];
 
 const Home = () => {
+  const [showFx, setShowFx] = useState(false);
+
+  // reduce initial load by deferring the hyperspeed effect (reduction of LCP)
+  useEffect(() => {
+    const start = () =>
+      "requestIdleCallback" in window
+        ? requestIdleCallback(() => setShowFx(true))
+        : setTimeout(() => setShowFx(true), 250); // fallback
+    start();
+  }, []);
+
   return (
     <div className="min-h-screen">
-      <HyperSpeedFinal />
+      {showFx && (
+        <Suspense fallback={null}>
+          {/* <HyperSpeedFinal /> */}
+          {/* Increased performance by 2 points by adding below reduction in effectOptions */}
+          <HyperSpeedFinal
+            effectOptions={{
+              // length: 250, // 400 → 250
+              // lanesPerRoad: 3, // 4 → 3
+              // totalSideLightSticks: 12, // 20 → 12
+              // lightPairsPerRoadWay: 24, // 40 → 24
+              // carLightsFade: 0.3, // slightly less overdraw
+              // fov: 80,
+              // fovSpeedUp: 120, // less distortion work
+              // distortion: "turbulentDistortion", // keep, but lighter scene helps more
+              onSpeedUp: () => {},
+              onSlowDown: () => {},
+              distortion: "turbulentDistortion",
+              length: 250,
+              roadWidth: 10,
+              islandWidth: 2,
+              lanesPerRoad: 3,
+              fov: 90,
+              fovSpeedUp: 150,
+              speedUp: 2,
+              carLightsFade: 0.4,
+              totalSideLightSticks: 12,
+              lightPairsPerRoadWay: 14,
+              shoulderLinesWidthPercentage: 0.05,
+              brokenLinesWidthPercentage: 0.1,
+              brokenLinesLengthPercentage: 0.5,
+              lightStickWidth: [0.12, 0.5],
+              lightStickHeight: [1.3, 1.7],
+              movingAwaySpeed: [60, 80],
+              movingCloserSpeed: [-120, -160],
+              carLightsLength: [400 * 0.03, 400 * 0.2],
+              carLightsRadius: [0.05, 0.14],
+              carWidthPercentage: [0.3, 0.5],
+              carShiftX: [-0.8, 0.8],
+              carFloorSeparation: [0, 5],
+              colors: {
+                roadColor: 0x080808,
+                islandColor: 0x0a0a0a,
+                background: 0x000000,
+                shoulderLines: 0xffffff,
+                brokenLines: 0xffffff,
+                leftCars: [0xd856bf, 0x6750a2, 0xc247ac],
+                rightCars: [0x03b3c3, 0x0e5ea5, 0x324555],
+                sticks: 0x03b3c3,
+              },
+            }}
+          />{" "}
+        </Suspense>
+      )}
       {/* Hero Section */}
       <div className="relative z-10">
         <section className="min-h-screen flex items-center justify-center px-4 pt-20 z-300">

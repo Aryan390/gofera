@@ -381,6 +381,9 @@ const HyperSpeedFinal = ({
           false
         );
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        // this.renderer.setPixelRatio(
+        //   Math.min(1.25, window.devicePixelRatio || 1)
+        // );
         this.composer = new EffectComposer(this.renderer);
         container.append(this.renderer.domElement);
 
@@ -460,6 +463,11 @@ const HyperSpeedFinal = ({
         this.renderPass = new RenderPass(this.scene, this.camera);
         this.bloomPass = new EffectPass(
           this.camera,
+          // new BloomEffect({
+          //   luminanceThreshold: 0.25,
+          //   luminanceSmoothing: 0.2,
+          //   resolutionScale: 0.5,
+          // })
           new BloomEffect({
             luminanceThreshold: 0.2,
             luminanceSmoothing: 0,
@@ -471,6 +479,7 @@ const HyperSpeedFinal = ({
           this.camera,
           new SMAAEffect({
             preset: SMAAPreset.MEDIUM,
+            // preset: SMAAPreset.LOW,
             searchImage: SMAAEffect.searchImageDataURL,
             areaImage: SMAAEffect.areaImageDataURL,
           })

@@ -1,0 +1,9 @@
+# robots.txt for Gofera Ride Share Application
+User-agent: *
+Disallow: /backend/
+Disallow: /private/
+Disallow: /api/
+Allow: /
+
+# Sitemap (uncomment and update if you have a sitemap)
+# Sitemap: https://yourdomain.com/sitemap.xml

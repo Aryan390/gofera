@@ -75,6 +75,7 @@ const Home = () => {
                 <Link
                   to="/post-ride"
                   className="btn-primary-glass flex items-center space-x-3 text-lg px-8 py-4 animate-glow"
+                  aria-label="Share Your Ride"
                 >
                   <Car size={24} />
                   <span>Share Your Ride</span>
@@ -83,6 +84,7 @@ const Home = () => {
                 <Link
                   to="/find-rides"
                   className="btn-secondary-glass flex items-center space-x-3 text-lg px-8 py-4"
+                  aria-label="Find a Ride"
                 >
                   <Users size={24} />
                   <span>Find a Ride</span>
@@ -322,14 +324,16 @@ const Home = () => {
                 <Link
                   to="/login"
                   className="btn-accent-glass flex items-center space-x-3 text-lg px-8 py-4"
+                  aria-label="Get Started Today"
                 >
                   <Star size={24} />
                   <span>Get Started Today</span>
                 </Link>
 
                 <Link
-                  to="/about"
+                  to="/"
                   className="btn-glass flex items-center space-x-3 text-lg px-8 py-4"
+                  aria-label="Learn More"
                 >
                   <Shield size={24} />
                   <span>Learn More</span>

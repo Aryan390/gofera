@@ -173,6 +173,9 @@ const Navigation = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="btn-glass p-2"
+              aria-label={
+                isOpen ? "Close navigation menu" : "Open navigation menu"
+              }
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

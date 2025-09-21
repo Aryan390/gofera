@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pwa:assets": "npx pwa-asset-generator ./car.png ./public/icons -- favicon --maskable true --padding '12%' --background '#131617' --index ./index.html"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
     "lucide-react": "^0.541.0",
     "postprocessing": "^6.37.7",
+    "pwa-asset-generator": "^8.0.5",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.8.0",
@@ -28,6 +30,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
-    "vite": "^7.1.0"
+    "vite": "^7.1.0",
+    "vite-plugin-pwa": "^1.0.3"
   }
 }

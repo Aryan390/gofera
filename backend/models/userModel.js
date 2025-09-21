@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema(
         message: "Please provide a valid phone number",
       },
     },
+    pushSubscription: {
+      type: Object,
+      select: false,
+    },
     isDriver: {
       type: Boolean,
       default: false,

@@ -381,6 +381,7 @@ const HyperSpeedFinal = ({
           false
         );
         this.renderer.setPixelRatio(window.devicePixelRatio);
+
         // this.renderer.setPixelRatio(
         //   Math.min(1.25, window.devicePixelRatio || 1)
         // );

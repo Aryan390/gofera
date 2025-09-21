@@ -2,7 +2,7 @@
 import { Navigate } from "react-router";
 import { useUser } from "../context/UserContext";
 
-const PublicRoute = ({ children, redirectTo = "/dashboard" }) => {
+const PublicRoute = ({ children, redirectTo = "/" }) => {
   const { isAuthenticated, isInitialized } = useUser();
 
   // Show loading while checking authentication status

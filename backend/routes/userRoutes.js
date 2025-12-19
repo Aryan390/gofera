@@ -1,6 +1,7 @@
 const express = require("express");
 const authController = require("../controllers/authController");
 const userController = require("../controllers/userController");
+const notificationController = require("../controllers/notificationController");
 
 const router = express.Router();
 
@@ -13,6 +14,12 @@ router.get("/search", userController.searchUsers);
 
 // Protected routes - require authentication
 router.use(authController.protect);
+
+// Notification routes
+router.post(
+  "/notifications/subscribe",
+  notificationController.subscribeToNotifications
+);
 
 // User profile routes
 router.get("/me", authController.getMe);

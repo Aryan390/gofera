@@ -2,6 +2,7 @@ const Ride = require("../models/rideModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const { sendNewRideNotification } = require("./notificationController");
 
 // Get all available rides (public access)
 exports.getAllRides = catchAsync(async (req, res, next) => {
@@ -83,6 +84,8 @@ exports.createRide = catchAsync(async (req, res, next) => {
   };
 
   const newRide = await Ride.create(rideData);
+
+  await sendNewRideNotification(newRide);
 
   res.status(201).json({
     status: "success",

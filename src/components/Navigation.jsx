@@ -12,6 +12,7 @@ import {
   SquareChartGantt,
 } from "lucide-react";
 import { useUser, useUserActions } from "../context/UserContext";
+import NotificationSubscribe from "./NotificationSubscribe";
 
 const items = [
   { path: "/find-rides", label: "Find Rides", icon: Users },
@@ -131,6 +132,7 @@ const Navigation = () => {
   };
   return (
     <>
+      <NotificationSubscribe />
       {/* Desktop Navigation */}
       <nav className="nav-glass fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 hidden md:block">
         <div className="flex items-center space-x-8">

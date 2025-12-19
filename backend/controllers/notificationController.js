@@ -7,7 +7,7 @@ const publicVapidKey = process.env.PUBLIC_VAPID_KEY;
 const privateVapidKey = process.env.PRIVATE_VAPID_KEY;
 
 webpush.setVapidDetails(
-  "mailto:your-email@gofera.com", // Replace with your email
+  "mailto:aryantechie21@gmail.com", // Replace with your email
   publicVapidKey,
   privateVapidKey
 );
@@ -33,6 +33,8 @@ exports.sendNewRideNotification = async (ride) => {
     const users = await User.find({
       pushSubscription: { $exists: true, $ne: null },
     });
+
+    console.log(ride);
 
     // Prepare notification payload
     const payload = JSON.stringify({
